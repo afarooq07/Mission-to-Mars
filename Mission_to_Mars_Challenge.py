@@ -19,6 +19,7 @@ def scrape_all():
         "news_paragraph": news_paragraph,
         "featured_image": featured_image(browser),
         "facts": mars_facts(),
+        "hemisphere_data": hemisphere_data(browser),
         "last_modified": dt.datetime.now()
     }
 
@@ -50,8 +51,8 @@ def mars_news(browser):
         news_p = slide_elem.find('div', class_='article_teaser_body').get_text(strip=True)
 
     except AttributeError:
-        news_title = 'NASA''s Mars 2020 Rover Completes Its First Drive'
-        news_p = 'test'
+        news_title = 'NASA Establishes Board to Initially Review Mars Sample Return Plans'
+        news_p = 'After a months-long contest among students to name NASA''s newest Mars rover, the agency will reveal the winning name — and the winning student — this Thursday.'
         return news_title, news_p
 
     return news_title, news_p
@@ -98,6 +99,33 @@ def mars_facts():
 
     # Convert dataframe into HTML format, add bootstrap
     return df.to_html(classes="table table-striped")
+
+def hemisphere_data(browser):
+    try:
+        url = 'https://marshemispheres.com/'
+        browser.visit(url)
+        hemisphere_image_urls = []
+
+        #Write code to retrieve the image urls and titles for each hemisphere.
+        html = browser.html
+        img_soup = soup(html, 'html.parser')
+        tag_box = img_soup.find('div', class_='collapsible results')
+        imgs = tag_box.find_all('div', class_='item')
+
+        for img in imgs:
+            # get inamge title and full resolution jpg path
+            img_name = img.find('div', class_='description').find('a', class_="itemLink product-item").text
+            img_title = img.find('div', class_='description').find('a', class_="itemLink product-item").get('href')
+            target_link = f'https://marshemispheres.com/{img_title}'
+            browser.visit(target_link)
+            element = browser.find_by_css('div[class="downloads"] a', wait_time=1)
+        
+            # Add the dictionary to the list
+            hemisphere_image_urls.append({'image_url':element["href"], 'title':img_name.strip()} )
+    except BaseException:
+        return None
+
+    return hemisphere_image_urls
 
 if __name__ == "__main__":
 
